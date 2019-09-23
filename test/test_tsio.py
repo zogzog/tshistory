@@ -84,9 +84,10 @@ def test_pack_unpack():
 def test_in_tx(tsh, engine):
     assert tsh.type(engine, 'foo') == 'primary'
 
-    with pytest.raises(TypeError) as err:
-        tsh.update(engine.connect(), 0, 0, 0)
-    assert err.value.args[0] == 'You must use a transaction object'
+    if getattr(engine, 'connect', None):
+        with pytest.raises(TypeError) as err:
+            tsh.update(engine.connect(), 0, 0, 0)
+        assert err.value.args[0] == 'You must use a transaction object'
 
     ts = genserie(datetime(2017, 10, 28, 23),
                   'H', 4, tz='UTC')

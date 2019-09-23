@@ -180,11 +180,11 @@ class timeseries(SeriesServices):
     @tx
     def metadata(self, cn, name):
         """Return metadata dict of timeserie."""
-        if name in cn.cache['metadata']:
-            return cn.cache['metadata']
+        if name in cn._cache['metadata']:
+            return cn._cache['metadata']
         sql = (f'select metadata from "{self.namespace}".registry '
                'where seriesname = %(name)s')
-        meta = cn.cache['metadata'][name] = cn.execute(sql, name=name).scalar()
+        meta = cn._cache['metadata'][name] = cn.execute(sql, name=name).scalar()
         return meta
 
     @tx
@@ -207,7 +207,7 @@ class timeseries(SeriesServices):
             metadata=json.dumps(newmeta),
             seriesname=name
         )
-        cn.cache['metadata'][name] = meta
+        cn._cache['metadata'][name] = meta
 
     def changeset_metadata(self, cn, csid):
         assert isinstance(csid, int)
@@ -639,11 +639,11 @@ class timeseries(SeriesServices):
                       seriesname=name).scalar():
             tablename = str(uuid.uuid4())
 
-        cn.cache['series_tablename'][name] = tablename
+        cn._cache['series_tablename'][name] = tablename
         return tablename
 
     def _series_to_tablename(self, cn, name):
-        tablename = cn.cache['series_tablename'].get(name)
+        tablename = cn._cache['series_tablename'].get(name)
         if tablename is not None:
             return tablename
 
@@ -655,7 +655,7 @@ class timeseries(SeriesServices):
         if tablename is None:
             # bogus series name
             return
-        cn.cache['series_tablename'][name] = tablename
+        cn._cache['series_tablename'][name] = tablename
         return tablename
 
     def _make_ts_table(self, cn, name):

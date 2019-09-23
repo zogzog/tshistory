@@ -7,6 +7,8 @@ import pytest
 from pytest_sa_pg import db
 from click.testing import CliRunner
 
+from sqlhelp.pg import pgengine
+
 from tshistory import schema, tsio, cli as command
 from tshistory.snapshot import Snapshot
 
@@ -21,7 +23,8 @@ def engine(request):
         'timezone': 'UTC',
         'log_timezone': 'UTC'}
     )
-    return create_engine(DBURI)
+    yield pgengine(DBURI)
+    yield create_engine(DBURI)
 
 
 @pytest.fixture(scope='session')

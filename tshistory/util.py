@@ -18,6 +18,7 @@ import pandas as pd
 from pandas.api.types import is_datetime64tz_dtype
 from sqlalchemy.engine import url
 from sqlalchemy.engine.base import Engine
+from sqlhelp.pg import pgengine, pgexecutor
 from inireader import reader
 
 
@@ -375,7 +376,7 @@ def threadpool(maxthreads):
 
 
 def _set_cache(txobj):
-    txobj.cache = {
+    txobj._cache = {
         'series_tablename': {},
         'metadata': {}
     }
@@ -386,9 +387,11 @@ def tx(func):
     " a decorator to check that the first method argument is a transaction "
     def check_tx_and_call(self, cn, *a, **kw):
         # safety belt to make sure important api points are tx-safe
-        if not isinstance(cn, Engine):
+        if not isinstance(cn, (Engine, pgengine, pgexecutor)):
             if not cn.in_transaction():
                 raise TypeError('You must use a transaction object')
+        elif isinstance(cn, pgexecutor):
+            return func(self, _set_cache(cn), *a, **kw)
         else:
             with cn.begin() as txcn:
                 return func(self, _set_cache(txcn), *a, **kw)
